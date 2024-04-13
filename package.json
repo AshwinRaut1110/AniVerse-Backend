@@ -1,0 +1,21 @@
+{
+  "name": "aniverse-backend",
+  "version": "1.0.0",
+  "description": "this is the backend for aniverse",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "dev": "nodemon --env-file=.env ./src/server.js"
+  },
+  "keywords": [
+    "anime",
+    "streaming"
+  ],
+  "author": "Ashwin Raut",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.3.1",
+    "validator": "^13.11.0"
+  }
+}
