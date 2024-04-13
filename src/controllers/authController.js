@@ -12,7 +12,10 @@ const signToken = (_id) => {
   return { token, tokenExpiration: Date.now() + +process.env.JWT_EXPIRES_IN };
 };
 
-const filterUserFields = (user, allowedFields = ["username", "email"]) => {
+const filterUserFields = (
+  user,
+  allowedFields = ["username", "email", "role"]
+) => {
   const allowedFieldsUser = {};
 
   allowedFields.forEach((field) => (allowedFieldsUser[field] = user[field]));
@@ -80,7 +83,100 @@ const signup = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+const updateMyPassword = catchAsyncErrors(async (req, res, next) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmPassword)
+    return next(
+      new CustomError(
+        400,
+        "The current password and the new password must be provided."
+      )
+    );
+
+  // check if the current password provided is correct
+  const isPasswordCorrect = await req.user.checkIsPasswordCorrect(
+    currentPassword
+  );
+
+  if (!isPasswordCorrect)
+    return next(new CustomError(400, "incorrect password provided."));
+
+  // change the user password and save the user
+  req.user.password = newPassword;
+  req.user.confirmPassword = confirmPassword;
+
+  const user = await req.user.save();
+
+  // if the new password is saved with no error give the user a new auth token
+  const token = signToken(user._id);
+
+  res.json({
+    status: "success",
+    data: {
+      user: filterUserFields(user),
+      token,
+    },
+  });
+});
+
+// middleware for protected routes
+const protect = catchAsyncErrors(async (req, res, next) => {
+  // get the jwt token from the auth header
+  const authHeader = req.headers.authorization || "";
+
+  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer"))
+    return next(
+      new CustomError(401, "you need be logged in to access this resource.")
+    );
+
+  const token = authHeader.split(" ")[1];
+
+  // verify if the auth token is valid and the token is not expired
+  const tokenPayload = jwt.verify(token, process.env.JWT_SECRET);
+
+  // get the user with the _id stored in token payload
+  const user = await User.findById(tokenPayload._id).select("+password");
+
+  if (!user)
+    return new CustomError(
+      401,
+      "user associated with the give token was not found. please sign up."
+    );
+
+  // check if the password was changed since the jwt token was issued
+  if (
+    user.passwordChangedAt &&
+    user.passwordChangedAt.getTime() > tokenPayload.iat * 1000
+  ) {
+    return next(
+      new CustomError(
+        401,
+        "password was changed since this token was issued. please login again."
+      )
+    );
+  }
+
+  req.user = user;
+
+  next();
+});
+
+const restrictTo = (...allowedRoutes) => {
+  return (req, res, next) => {
+    if (!allowedRoutes.includes(req.user.role))
+      return next(
+        new CustomError(403, "you do not have access to this resource.")
+      );
+
+    next();
+  };
+};
+
 module.exports = {
   login,
   signup,
+  protect,
+  restrictTo,
+  updateMyPassword,
 };

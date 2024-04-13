@@ -20,6 +20,17 @@ const handleValidationError = (err) => {
   return new CustomError(400, errorMessage);
 };
 
+const handleInvalidJWTError = () => {
+  return new CustomError(401, "invalid jwt token provided.");
+};
+
+const handleTokenExpiredError = () => {
+  return new CustomError(
+    401,
+    "provided jwt token has expired. please login again."
+  );
+};
+
 const sendDevError = (err, res) => {
   res.status(err.statusCode || 500).json({
     status: err.status || "error",
@@ -45,6 +56,8 @@ const globalErrorController = (err, req, res, next) => {
   } else if (process.env.environment === "PROD") {
     if (err.code === 11000) err = handleUniqueFieldError(err);
     if (err.name === "ValidationError") err = handleValidationError(err);
+    if (err.name === "JsonWebTokenError") err = handleInvalidJWTError();
+    if (err.name === "TokenExpiredError") err = handleTokenExpiredError();
 
     sendProdError(err, res);
   }
