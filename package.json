@@ -14,7 +14,9 @@
   "author": "Ashwin Raut",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.1",
     "validator": "^13.11.0"
   }
