@@ -14,7 +14,11 @@ const handleUniqueFieldError = (err) => {
 const handleValidationError = (err) => {
   // multiple error messges are seperated by ; so they can be parsed easily
   const errorMessage = Object.values(err.errors)
-    .map((e) => e.message)
+    .map((e) =>
+      e.name === "CastError"
+        ? `invalid value provided for ${e.path}.`
+        : e.message
+    )
     .join(";");
 
   return new CustomError(400, errorMessage);
@@ -49,6 +53,10 @@ const sendProdError = (err, res) => {
   if (!err.isOperational) console.log("ERROR", err);
 };
 
+const handleObjectIdCastError = () => {
+  return new CustomError(400, "invalid id provided.");
+};
+
 const globalErrorController = (err, req, res, next) => {
   // limit the error info sent based on application environment
   if (process.env.environment === "DEV") {
@@ -58,6 +66,8 @@ const globalErrorController = (err, req, res, next) => {
     if (err.name === "ValidationError") err = handleValidationError(err);
     if (err.name === "JsonWebTokenError") err = handleInvalidJWTError();
     if (err.name === "TokenExpiredError") err = handleTokenExpiredError();
+    if (err.name === "CastError" && err.kind === "ObjectId")
+      err = handleObjectIdCastError();
 
     sendProdError(err, res);
   }

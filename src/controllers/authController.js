@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const CustomError = require("../util/CustomError");
 const jwt = require("jsonwebtoken");
 const catchAsyncErrors = require("../util/catchAsyncErrors");
+const filterUserFields = require("../util/filterUserFields");
 
 // return a signed token with token expiration time
 const signToken = (_id) => {
@@ -10,17 +11,6 @@ const signToken = (_id) => {
   });
 
   return { token, tokenExpiration: Date.now() + +process.env.JWT_EXPIRES_IN };
-};
-
-const filterUserFields = (
-  user,
-  allowedFields = ["username", "email", "role"]
-) => {
-  const allowedFieldsUser = {};
-
-  allowedFields.forEach((field) => (allowedFieldsUser[field] = user[field]));
-
-  return allowedFieldsUser;
 };
 
 const login = catchAsyncErrors(async (req, res, next) => {
