@@ -84,8 +84,8 @@ const animeSchema = new mongoose.Schema({
       relation: {
         type: String,
         enum: {
-          values: ["prequel", "sequel", "spin-off"],
-          message: "allowed values are (prequel|sequel|spin-off).",
+          values: ["prequel", "sequel", "spin-off", "current"],
+          message: "allowed values are (prequel|sequel|spin-off|current).",
         },
         required: [true, "related anime relation is required."],
       },

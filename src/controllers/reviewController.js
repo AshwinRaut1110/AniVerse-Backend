@@ -3,6 +3,7 @@ const catchAsyncErrors = require("../util/catchAsyncErrors");
 const APIFeatures = require("../util/APIFeatures");
 const CustomError = require("../util/CustomError");
 const Anime = require("../models/animeModel");
+const ReviewVote = require("../models/reviewVoteModel");
 
 const getAllReviews = catchAsyncErrors(async (req, res, next) => {
   // check if an anime id has been provided, if yes just return the reviews for that anime
@@ -11,7 +12,7 @@ const getAllReviews = catchAsyncErrors(async (req, res, next) => {
 
   if (req.params.animeId) filter.anime = req.params.animeId;
 
-  const apiFeatures = new APIFeatures(Review.find(), req.query)
+  const apiFeatures = new APIFeatures(Review.find(filter), req.query)
     .filter()
     .sort()
     .limitFields()
@@ -28,6 +29,7 @@ const getAllReviews = catchAsyncErrors(async (req, res, next) => {
     data: {
       reviews,
     },
+    page: req.query.page || 1,
   });
 });
 
@@ -132,7 +134,7 @@ const updateMyReview = catchAsyncErrors(async (req, res, next) => {
   // this is set to allow for changing the average anime rating in the pre save middleware
   existingReview.oldReviewRating = existingReview.rating;
 
-  const allowedFields = ["rating", "review"];
+  const allowedFields = ["rating", "review", "title", "spoiler"];
 
   Object.keys(req.body).forEach((update) => {
     if (allowedFields.includes(update)) {
@@ -152,10 +154,15 @@ const updateMyReview = catchAsyncErrors(async (req, res, next) => {
 
 // delete a user's review
 const deleteMyReview = catchAsyncErrors(async (req, res, next) => {
-  const deletedDocument = await Review.findOneAndDelete({
-    user: req.user._id,
-    anime: req.params.animeId,
-  });
+  const deletedDocument = await Review.findOneAndDelete(
+    {
+      user: req.user._id,
+      anime: req.params.animeId,
+    },
+    {
+      returnDocument: true,
+    }
+  );
 
   if (!deletedDocument)
     return next(
@@ -168,6 +175,115 @@ const deleteMyReview = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+const addNotHelpfulVote = catchAsyncErrors(async (req, res, next) => {
+  // get the review by associated with the vote
+  const review = await Review.findById(req.params.reviewId);
+
+  if (!review)
+    return next(
+      new CustomError(404, "A review with the given id was not found.")
+    );
+
+  // check if the vote already exists
+  let vote = await ReviewVote.findOne({
+    review: req.params.reviewId,
+    user: req.user._id,
+  });
+
+  if (!vote) {
+    // if the vote does not already exist create a new one
+    vote = await ReviewVote.create({
+      helpful: false,
+      review: review._id,
+      anime: req.params.animeId,
+      user: req.user._id,
+    });
+
+    if (!vote) return next(new CustomError(400, "unable to save your vote"));
+
+    review.notHelpfulVotes++;
+
+    await review.save();
+
+    res.send({ status: "success", data: { vote, isNew: true } });
+  } else {
+    // if the vote already exists and is already marked as not helpful just send an error
+    if (!vote.helpful)
+      return next(
+        new CustomError(
+          400,
+          "You have already marked this review as not helpful."
+        )
+      );
+
+    // otherwise just mark it as not helpful
+    vote.helpful = false;
+
+    review.helpfulVotes--;
+    review.notHelpfulVotes++;
+
+    await vote.save();
+    await review.save();
+
+    res.send({ status: "success", data: { vote } });
+  }
+});
+
+const addHelpfulVote = catchAsyncErrors(async (req, res, next) => {
+  // get the review by associated with the vote
+  const review = await Review.findOne({
+    _id: req.params.reviewId,
+    anime: req.params.animeId,
+  });
+
+  if (!review)
+    return next(
+      new CustomError(404, "A review with the given id was not found.")
+    );
+
+  // check if the vote already exists
+  let vote = await ReviewVote.findOne({
+    review: req.params.reviewId,
+    anime: req.params.animeId,
+    user: req.user._id,
+  });
+
+  if (!vote) {
+    // if the vote does not already exist create a new one
+    vote = await ReviewVote.create({
+      helpful: true,
+      review: review._id,
+      anime: req.params.animeId,
+      user: req.user._id,
+    });
+
+    if (!vote) return next(new CustomError(400, "unable to save your vote"));
+
+    review.helpfulVotes++;
+
+    await review.save();
+
+    res.send({ status: "success", data: { vote, isNew: true } });
+  } else {
+    // if the vote already exists and is already marked as helpful just send an error
+    if (vote.helpful)
+      return next(
+        new CustomError(400, "You have already marked this review as helpful.")
+      );
+
+    // otherwise just mark it as helpful
+    vote.helpful = true;
+
+    review.helpfulVotes++;
+    review.notHelpfulVotes--;
+
+    await vote.save();
+    await review.save();
+
+    res.send({ status: "success", data: { vote } });
+  }
+});
+
 module.exports = {
   getAllReviews,
   createReview,
@@ -175,4 +291,6 @@ module.exports = {
   getMyReview,
   updateMyReview,
   deleteMyReview,
+  addHelpfulVote,
+  addNotHelpfulVote,
 };

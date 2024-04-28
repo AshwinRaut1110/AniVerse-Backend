@@ -1,7 +1,5 @@
 const catchAsyncErrors = require("../util/catchAsyncErrors");
-const sharp = require("sharp");
 const { join } = require("path");
-const Minio = require("minio");
 const fs = require("fs/promises");
 const Anime = require("../models/animeModel");
 const CustomError = require("../util/CustomError");
@@ -171,7 +169,20 @@ const getAnimeDetails = catchAsyncErrors(async (req, res, next) => {
 
   if (!animeId) return next(new CustomError(400, "anime id must be provided."));
 
-  const anime = await Anime.findById(animeId);
+  const query = Anime.findById(animeId);
+
+  if (req.query.populate) {
+    query.populate({
+      path: "relatedAnimes",
+      populate: {
+        path: "anime",
+        select:
+          "names averageRating ratingsQuantity description genres episodes status aired type thumbnail duration",
+      },
+    });
+  }
+
+  const anime = await query;
 
   if (!anime)
     return next(new CustomError(404, "anime with the provided id not found."));

@@ -6,6 +6,8 @@ const {
   getMyReview,
   updateMyReview,
   deleteMyReview,
+  addHelpfulVote,
+  addNotHelpfulVote,
 } = require("../controllers/reviewController");
 const { protect } = require("../controllers/authController");
 
@@ -20,5 +22,8 @@ reviewRouter
   .delete(protect, deleteMyReview);
 
 reviewRouter.route("/:reviewId").get(getReviewById);
+
+reviewRouter.route("/:reviewId/helpful").post(protect, addHelpfulVote);
+reviewRouter.route("/:reviewId/not-helpful").post(protect, addNotHelpfulVote);
 
 module.exports = reviewRouter;

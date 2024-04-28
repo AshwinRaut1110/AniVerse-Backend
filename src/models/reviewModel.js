@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const Anime = require("./animeModel");
 
 const reviewSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    trim: true,
+  },
   review: {
     type: String,
     trim: true,
@@ -9,9 +13,20 @@ const reviewSchema = new mongoose.Schema({
   rating: {
     type: Number,
     min: 0,
-    max: 10,
+    max: 5,
     required: [true, "A rating score is required."],
   },
+  helpfulVotes: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  notHelpfulVotes: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  spoiler: Boolean,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -73,6 +88,8 @@ reviewSchema.pre("save", async function (next) {
 
 // calcalate the average rating when the user deletes his review
 reviewSchema.post("findOneAndDelete", async function (deletedDocument) {
+  if (!deletedDocument) return;
+
   // find the anime for this review
   const anime = await Anime.findById(deletedDocument.anime);
 
