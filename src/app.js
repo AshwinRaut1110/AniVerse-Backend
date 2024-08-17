@@ -4,6 +4,8 @@ const animeRouter = require("./routes/animeRoutes");
 const globalErrorController = require("./controllers/globalErrorController");
 const cors = require("cors");
 const reviewRouter = require("./routes/reviewRoutes");
+const episodeRouter = require("./routes/episodeRoutes");
+const commnetRouter = require("./routes/commentRoutes");
 
 const app = express();
 
@@ -13,6 +15,8 @@ app.use(cors());
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/animes", animeRouter);
 app.use("/api/v1/reviews", reviewRouter);
+app.use("/api/v1/episodes", episodeRouter);
+app.use("/api/v1/comments", commnetRouter);
 
 app.all("*", (req, res) => {
   res.status(404).json({

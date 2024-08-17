@@ -1,6 +1,6 @@
 const filterUserFields = (
   user,
-  allowedFields = ["username", "email", "role", "profilePicture"]
+  allowedFields = ["username", "email", "role", "profilePicture", "createdAt"]
 ) => {
   const allowedFieldsUser = {};
 

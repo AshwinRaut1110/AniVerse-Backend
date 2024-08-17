@@ -56,6 +56,75 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  Stats: {
+    helpfulVotes: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    notHelpfulVotes: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    reviewsGiven: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    commentsMade: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    watchListStats: {
+      watched: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      planToWatch: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      dropped: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      completed: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      onHold: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      meanRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      totalWatchTime: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      totalEntries: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      episodesWatched: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+    },
+  },
   passwordChangedAt: {
     type: Date,
   },

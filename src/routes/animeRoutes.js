@@ -3,12 +3,12 @@ const { protect, restrictTo } = require("../controllers/authController");
 const {
   createAnime,
   updateAnime,
-  updateThumbnail,
   getAnimeDetails,
 } = require("../controllers/animeController");
 
 const multer = require("multer");
 const reviewRouter = require("./reviewRoutes");
+const episodeRouter = require("./episodeRoutes");
 
 const upload = multer();
 
@@ -16,6 +16,7 @@ const animeRouter = express.Router();
 
 // if the user want to access the reviews for an anime
 animeRouter.use("/:animeId/reviews", reviewRouter);
+animeRouter.use("/:animeId/episodes", episodeRouter);
 
 animeRouter
   .route("/")
