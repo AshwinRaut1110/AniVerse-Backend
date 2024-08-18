@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const CustomError = require("../util/CustomError");
 const jwt = require("jsonwebtoken");
 const catchAsyncErrors = require("../util/catchAsyncErrors");
-const filterUserFields = require("../util/filterUserFields");
+const { filterUserFields } = require("../util/filterFields");
 
 // return a signed token with token expiration time
 const signToken = (_id) => {

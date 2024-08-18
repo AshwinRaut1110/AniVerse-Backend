@@ -21,6 +21,17 @@ const watchlistSchema = mongoose.Schema({
     },
     default: "watching",
   },
+  thumbnail: {
+    type: String,
+  },
+  title: {
+    type: String,
+    required: [true, "The anime title is required."],
+  },
 });
 
-const Watchlist = mongoose.Model("Watchlist", watchlistSchema);
+watchlistSchema.index({ anime: 1, user: 1 }, { unique: true });
+
+const Watchlist = mongoose.model("Watchlist", watchlistSchema);
+
+module.exports = Watchlist;

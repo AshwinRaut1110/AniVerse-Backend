@@ -3,7 +3,7 @@ const catchAsyncErrors = require("../util/catchAsyncErrors");
 const sharp = require("sharp");
 const { join } = require("path");
 const Minio = require("minio");
-const filterUserFields = require("../util/filterUserFields");
+const filterUserFields = require("../util/filterFields");
 const fs = require("fs/promises");
 
 const updateMyProfilePicture = catchAsyncErrors(async (req, res, file) => {

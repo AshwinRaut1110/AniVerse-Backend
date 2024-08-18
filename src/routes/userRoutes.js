@@ -3,7 +3,6 @@ const {
   login,
   signup,
   protect,
-  restrictTo,
   updateMyPassword,
 } = require("../controllers/authController");
 const { updateMyProfilePicture } = require("../controllers/userController");

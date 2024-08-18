@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  Stats: {
+  stats: {
     helpfulVotes: {
       type: Number,
       default: 0,
@@ -77,8 +77,8 @@ const userSchema = new mongoose.Schema({
       default: 0,
       min: 0,
     },
-    watchListStats: {
-      watched: {
+    watchlistStats: {
+      watching: {
         type: Number,
         default: 0,
         min: 0,
@@ -103,11 +103,11 @@ const userSchema = new mongoose.Schema({
         default: 0,
         min: 0,
       },
-      meanRating: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
+      // meanRating: {
+      //   type: Number,
+      //   default: 0,
+      //   min: 0,
+      // },
       totalWatchTime: {
         type: Number,
         default: 0,
@@ -124,6 +124,10 @@ const userSchema = new mongoose.Schema({
         min: 0,
       },
     },
+  },
+  watchlistIsPublic: {
+    type: Boolean,
+    default: false,
   },
   passwordChangedAt: {
     type: Date,

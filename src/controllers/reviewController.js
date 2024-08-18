@@ -4,6 +4,7 @@ const APIFeatures = require("../util/APIFeatures");
 const CustomError = require("../util/CustomError");
 const Anime = require("../models/animeModel");
 const ReviewVote = require("../models/reviewVoteModel");
+const User = require("../models/userModel");
 
 const getAllReviews = catchAsyncErrors(async (req, res, next) => {
   // check if an anime id has been provided, if yes just return the reviews for that anime
@@ -71,6 +72,11 @@ const createReview = catchAsyncErrors(async (req, res, next) => {
 
   if (!createdReview)
     return next(new CustomError(400, "Unable to create the review."));
+
+  // update the reviewGiven user stat
+  req.user.stats.reviewsGiven++;
+
+  await req.user.save();
 
   res.status(201).send({
     status: "success",
@@ -169,6 +175,11 @@ const deleteMyReview = catchAsyncErrors(async (req, res, next) => {
       new CustomError(404, "you do not have a review for this anime yet.")
     );
 
+  // update the reviewGiven user stat
+  req.user.stats.reviewsGiven--;
+
+  await req.user.save();
+
   res.status(204).send({
     status: "success",
     data: null,
@@ -183,6 +194,12 @@ const addNotHelpfulVote = catchAsyncErrors(async (req, res, next) => {
     return next(
       new CustomError(404, "A review with the given id was not found.")
     );
+
+  // find the user who reviewed wrote the review since we need to update the notHelpfulVote count for that user
+  const reviewer = await User.findById(review.user);
+
+  if (!reviewer)
+    return next(new CustomError(404, "Unable to mark the review as helpful."));
 
   // check if the vote already exists
   let vote = await ReviewVote.findOne({
@@ -205,6 +222,11 @@ const addNotHelpfulVote = catchAsyncErrors(async (req, res, next) => {
 
     await review.save();
 
+    // updating the notHelpfulVotes stat for the user who wrote the review
+    reviewer.stats.notHelpfulVotes++;
+
+    await reviewer.save();
+
     res.send({ status: "success", data: { vote, isNew: true } });
   } else {
     // if the vote already exists and is already marked as not helpful just send an error
@@ -225,6 +247,12 @@ const addNotHelpfulVote = catchAsyncErrors(async (req, res, next) => {
     await vote.save();
     await review.save();
 
+    // updating the notHelpfulVotes stat for the user who wrote the review
+    reviewer.stats.notHelpfulVotes++;
+    reviewer.stats.helpfulVotes--;
+
+    await reviewer.save();
+
     res.send({ status: "success", data: { vote } });
   }
 });
@@ -240,6 +268,12 @@ const addHelpfulVote = catchAsyncErrors(async (req, res, next) => {
     return next(
       new CustomError(404, "A review with the given id was not found.")
     );
+
+  // find the user who reviewed wrote the review since we need to update the notHelpfulVote count for that user
+  const reviewer = await User.findById(review.user);
+
+  if (!reviewer)
+    return next(new CustomError(404, "Unable to mark the review as helpful."));
 
   // check if the vote already exists
   let vote = await ReviewVote.findOne({
@@ -263,6 +297,11 @@ const addHelpfulVote = catchAsyncErrors(async (req, res, next) => {
 
     await review.save();
 
+    // updating the helpfulVotes stat for the user who wrote the review
+    reviewer.stats.helpfulVotes++;
+
+    await reviewer.save();
+
     res.send({ status: "success", data: { vote, isNew: true } });
   } else {
     // if the vote already exists and is already marked as helpful just send an error
@@ -279,6 +318,12 @@ const addHelpfulVote = catchAsyncErrors(async (req, res, next) => {
 
     await vote.save();
     await review.save();
+
+    // updating the helpfulVotes stat for the user who wrote the review
+    reviewer.stats.helpfulVotes++;
+    reviewer.stats.notHelpfulVotes--;
+
+    await reviewer.save();
 
     res.send({ status: "success", data: { vote } });
   }

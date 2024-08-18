@@ -6,6 +6,7 @@ const cors = require("cors");
 const reviewRouter = require("./routes/reviewRoutes");
 const episodeRouter = require("./routes/episodeRoutes");
 const commnetRouter = require("./routes/commentRoutes");
+const { watchlistRouter } = require("./routes/watchlistRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/v1/animes", animeRouter);
 app.use("/api/v1/reviews", reviewRouter);
 app.use("/api/v1/episodes", episodeRouter);
 app.use("/api/v1/comments", commnetRouter);
+app.use("/api/v1/watchlist", watchlistRouter);
 
 app.all("*", (req, res) => {
   res.status(404).json({

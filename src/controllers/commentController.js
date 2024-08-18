@@ -23,6 +23,11 @@ const createComment = catchAsyncErrors(async (req, res, next) => {
 
   const comment = await Comment.create(commentData);
 
+  // update the comments made user stat
+  req.user.stats.commentsMade++;
+
+  await req.user.save();
+
   res.status(201).send({
     status: "success",
     data: {
