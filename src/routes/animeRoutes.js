@@ -4,6 +4,7 @@ const {
   createAnime,
   updateAnime,
   getAnimeDetails,
+  getAnimes,
 } = require("../controllers/animeController");
 
 const multer = require("multer");
@@ -20,6 +21,7 @@ animeRouter.use("/:animeId/episodes", episodeRouter);
 
 animeRouter
   .route("/")
+  .get(getAnimes)
   .post(
     protect,
     restrictTo("admin"),

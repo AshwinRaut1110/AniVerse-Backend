@@ -8,6 +8,7 @@ const {
   deleteAComment,
   likeAComment,
   dislikeAComment,
+  findUserLike,
 } = require("../controllers/commentController");
 
 const commnetRouter = express.Router({ mergeParams: true });
@@ -27,5 +28,7 @@ commnetRouter.route("/:commentId/replies").get(getRepliesToAComment);
 commnetRouter.route("/:commentId/like").post(protect, likeAComment);
 
 commnetRouter.route("/:commentId/dislike").post(protect, dislikeAComment);
+
+commnetRouter.route("/:commentId/getlike").get(protect, findUserLike);
 
 module.exports = commnetRouter;

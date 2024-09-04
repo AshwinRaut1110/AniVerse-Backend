@@ -5,6 +5,7 @@ const Anime = require("../models/animeModel");
 const CustomError = require("../util/CustomError");
 const { uploadAnimeImagesToMinio } = require("../util/minioHelpers");
 const mongoose = require("mongoose");
+const APIFeatures = require("../util/APIFeatures");
 
 const createAnime = catchAsyncErrors(async (req, res, next) => {
   const animeData = JSON.parse(req.body.animeData);
@@ -195,4 +196,21 @@ const getAnimeDetails = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-module.exports = { createAnime, updateAnime, getAnimeDetails };
+const getAnimes = catchAsyncErrors(async (req, res, next) => {
+  const apiFeatures = new APIFeatures(Anime.find(), req.query)
+    .sort()
+    .pagination()
+    .limitFields()
+    .filter();
+
+  const animes = await apiFeatures.query;
+
+  res.send({
+    status: "success",
+    data: {
+      animes,
+    },
+  });
+});
+
+module.exports = { createAnime, updateAnime, getAnimeDetails, getAnimes };

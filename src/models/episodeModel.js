@@ -27,7 +27,7 @@ const episodeSchema = new mongoose.Schema({
   releasedAt: Date,
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   thumbnail: String,
   versions: {

@@ -21,13 +21,25 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  username: {
+    type: String,
+    trim: true,
+    required: [true, "username is required."],
+  },
+  profilePicture: {
+    type: String,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   episode: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Episode",
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   modifiedAt: Date,
   parent: {

@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   stats: {
     helpfulVotes: {
@@ -150,7 +150,7 @@ userSchema.pre("save", async function (next) {
 userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
 
-  this.passwordChangedAt = Date.now() - 5000;
+  this.passwordChangedAt = Date.now - 5000;
 
   next();
 });

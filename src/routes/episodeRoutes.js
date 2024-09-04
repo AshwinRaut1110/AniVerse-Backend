@@ -55,6 +55,10 @@ episodeRouter
     uploadAnEpisode
   );
 
+episodeRouter
+  .route("/delete/:episodeIdentifier")
+  .delete(protect, restrictTo("admin"), deleteAnEpisode);
+
 episodeRouter.use("/:episodeId/comments", commnetRouter);
 
 module.exports = episodeRouter;

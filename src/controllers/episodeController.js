@@ -9,6 +9,7 @@ const {
   uploadEpisodeToMinio,
   deleteEpisodeFromMinio,
 } = require("../util/minioHelpers");
+const APIFeatures = require("../util/APIFeatures");
 
 const filterEpisodeUpdates = (episodeUpdates) => {
   const allowedUpdates = [
@@ -58,7 +59,15 @@ const getAllEpisodes = catchAsyncErrors(async (req, res, next) => {
   if (!req.params.animeId)
     return next(new CustomError(400, "an anime id must be provided."));
 
-  const episodes = await Episode.find({ anime: req.params.animeId });
+  const apiFeatures = new APIFeatures(
+    Episode.find({ anime: req.params.animeId }),
+    req.query
+  )
+    .sort()
+    .pagination()
+    .limitFields();
+
+  const episodes = await apiFeatures.query;
 
   res.send({
     status: "success",
@@ -116,7 +125,7 @@ const createEpisode = catchAsyncErrors(async (req, res, next) => {
 
 // update an episode
 const updateEpisode = catchAsyncErrors(async (req, res, next) => {
-  if (!req.body.episodeData && !req.file)
+  if (!req.body && !req.file)
     return next(new CustomError(400, "episode info must be provided."));
 
   const filter = getEpisodeFilter(req);
@@ -128,8 +137,8 @@ const updateEpisode = catchAsyncErrors(async (req, res, next) => {
   let episodeUpdates;
 
   // set the updates
-  if (req.body.episodeData) {
-    episodeUpdates = filterEpisodeUpdates(JSON.parse(req.body.episodeData));
+  if (req.body) {
+    episodeUpdates = filterEpisodeUpdates(req.body);
 
     episode = setEpisodeUpdates(episode, episodeUpdates);
 

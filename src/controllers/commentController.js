@@ -3,6 +3,7 @@ const CustomError = require("../util/CustomError");
 const catchAsyncErrors = require("../util/catchAsyncErrors");
 const Episode = require("../models/episodeModel");
 const CommentLike = require("../models/commentLikeModel");
+const APIFeatures = require("../util/APIFeatures");
 
 const createComment = catchAsyncErrors(async (req, res, next) => {
   if (!req.params.episodeId)
@@ -19,6 +20,8 @@ const createComment = catchAsyncErrors(async (req, res, next) => {
     ...req.body,
     episode: req.params.episodeId,
     user: req.user._id,
+    username: req.user.username,
+    profilePicture: req.user.profilePicture,
   };
 
   const comment = await Comment.create(commentData);
@@ -64,10 +67,19 @@ const getAllCommentOfAEpisode = catchAsyncErrors(async (req, res, next) => {
   if (!req.params.episodeId)
     return next(new CustomError(400, "Episode id must be provided."));
 
-  const comments = await Comment.find({
-    episode: req.params.episodeId,
-    parent: undefined,
-  });
+  const apiFeatures = new APIFeatures(
+    Comment.find({
+      episode: req.params.episodeId,
+      parent: undefined,
+    }),
+    req.query
+  )
+    .sort()
+    .filter()
+    .limitFields()
+    .pagination();
+
+  const comments = await apiFeatures.query;
 
   res.send({
     status: "success",
@@ -82,10 +94,19 @@ const getRepliesToAComment = catchAsyncErrors(async (req, res, next) => {
   if (!req.params.episodeId)
     return next(new CustomError(400, "Episode id must be provided."));
 
-  const replies = await Comment.find({
-    episode: req.params.episodeId,
-    parent: req.params.commentId,
-  });
+  const apiFeatures = new APIFeatures(
+    Comment.find({
+      episode: req.params.episodeId,
+      parent: req.params.commentId,
+    }),
+    req.query
+  )
+    .sort()
+    .filter()
+    .limitFields()
+    .pagination();
+
+  const replies = await apiFeatures.query;
 
   res.send({
     status: "success",
@@ -238,6 +259,27 @@ const dislikeAComment = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+const findUserLike = catchAsyncErrors(async (req, res, next) => {
+  console.log(req.params);
+
+  const { commentId } = req.params;
+
+  const commentLike = await CommentLike.findOne({
+    comment: commentId,
+    user: req.user._id,
+  });
+
+  if (!commentLike)
+    return next(new CustomError(204, "you haven't liked this comment yet."));
+
+  res.send({
+    status: "success",
+    data: {
+      commentLike,
+    },
+  });
+});
+
 module.exports = {
   createComment,
   updateComment,
@@ -246,4 +288,5 @@ module.exports = {
   deleteAComment,
   likeAComment,
   dislikeAComment,
+  findUserLike,
 };
