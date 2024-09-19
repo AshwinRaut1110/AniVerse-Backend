@@ -118,6 +118,7 @@ const animeSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  featured: { type: Boolean, default: false, required: false },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -16,6 +16,17 @@ const createComment = catchAsyncErrors(async (req, res, next) => {
       new CustomError(400, "Episode with the provided id was not found.")
     );
 
+  // if this comment is a reply to another comment then check if the parent comment exists
+  let parentComment;
+
+  if (req.body.parent)
+    parentComment = await Comment.findOne({ _id: req.body.parent });
+
+  if (req.body.parent && !parentComment)
+    return next(
+      new CustomError(400, "Parent comment with the provided id was not found.")
+    );
+
   const commentData = {
     ...req.body,
     episode: req.params.episodeId,
@@ -30,6 +41,12 @@ const createComment = catchAsyncErrors(async (req, res, next) => {
   req.user.stats.commentsMade++;
 
   await req.user.save();
+
+  // update the parent comments number of replies
+  if (req.body.parent) {
+    parentComment.numberOfReplies++;
+    await parentComment.save();
+  }
 
   res.status(201).send({
     status: "success",
@@ -260,8 +277,6 @@ const dislikeAComment = catchAsyncErrors(async (req, res, next) => {
 });
 
 const findUserLike = catchAsyncErrors(async (req, res, next) => {
-  console.log(req.params);
-
   const { commentId } = req.params;
 
   const commentLike = await CommentLike.findOne({

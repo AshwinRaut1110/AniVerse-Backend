@@ -3,10 +3,31 @@ const catchAsyncErrors = require("../util/catchAsyncErrors");
 const sharp = require("sharp");
 const { join } = require("path");
 const Minio = require("minio");
-const filterUserFields = require("../util/filterFields");
+const { filterUserFields } = require("../util/filterFields");
 const fs = require("fs/promises");
 
-const updateMyProfilePicture = catchAsyncErrors(async (req, res, file) => {
+const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
+  const filteredFields = filterUserFields(req.body, [
+    "username",
+    "email",
+    "watchlistIsPublic",
+  ]);
+
+  for (const key in filteredFields) {
+    if (filteredFields[key]) req.user[key] = filteredFields[key];
+  }
+
+  await req.user.save();
+
+  res.json({
+    status: "success",
+    data: {
+      user: filterUserFields(req.user),
+    },
+  });
+});
+
+const updateMyProfilePicture = catchAsyncErrors(async (req, res) => {
   const profilePicSavePath = join(
     __dirname,
     `../tempFiles/user_profile_pics/${req.user._id}.png`
@@ -62,4 +83,5 @@ const updateMyProfilePicture = catchAsyncErrors(async (req, res, file) => {
 
 module.exports = {
   updateMyProfilePicture,
+  updateUserProfile,
 };

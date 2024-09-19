@@ -6,7 +6,7 @@ const filterUserFields = (
     "role",
     "profilePicture",
     "createdAt",
-    "Stats",
+    "stats",
     "watchlistIsPublic",
   ]
 ) => {

@@ -21,13 +21,14 @@ animeRouter.use("/:animeId/episodes", episodeRouter);
 
 animeRouter
   .route("/")
-  .get(getAnimes)
   .post(
     protect,
     restrictTo("admin"),
     upload.fields([{ name: "anime-thumbnail" }, { name: "anime-banner" }]),
     createAnime
   );
+
+animeRouter.post("/get-animes", getAnimes);
 
 animeRouter
   .route("/:animeId")

@@ -6,6 +6,7 @@ const CustomError = require("../util/CustomError");
 const { uploadAnimeImagesToMinio } = require("../util/minioHelpers");
 const mongoose = require("mongoose");
 const APIFeatures = require("../util/APIFeatures");
+const { pagination, createMatch } = require("../util/misc");
 
 const createAnime = catchAsyncErrors(async (req, res, next) => {
   const animeData = JSON.parse(req.body.animeData);
@@ -197,16 +198,77 @@ const getAnimeDetails = catchAsyncErrors(async (req, res, next) => {
 });
 
 const getAnimes = catchAsyncErrors(async (req, res, next) => {
-  const apiFeatures = new APIFeatures(Anime.find(), req.query)
-    .sort()
-    .pagination()
-    .limitFields()
-    .filter();
+  const queryObject = req.body;
 
-  const animes = await apiFeatures.query;
+  const aggregationPipeline = [];
+
+  // adding the search stage for filtering based on anime name
+  if (queryObject.title) {
+    if (queryObject.title.length < 3)
+      return next(
+        new CustomError(400, "the title must be atleast 3 characters long.")
+      );
+
+    aggregationPipeline.push({
+      $search: {
+        index: "default",
+        compound: {
+          should: [
+            {
+              autocomplete: {
+                query: queryObject.title,
+                path: "names.english",
+              },
+            },
+            {
+              autocomplete: {
+                query: queryObject.title,
+                path: "names.japanese",
+              },
+            },
+          ],
+          minimumShouldMatch: 1,
+        },
+      },
+    });
+  }
+
+  // other filters, match stage
+  if (queryObject.filter) {
+    // console.log(createMatch(queryObject.filter));
+    aggregationPipeline.push({ $match: createMatch(queryObject.filter) });
+  }
+
+  // page and limit
+  if (queryObject.page || queryObject.limit) {
+    const pagingData = pagination({
+      page: queryObject.page,
+      limit: queryObject.limit,
+    });
+
+    aggregationPipeline.push({
+      $skip: pagingData.skip,
+    });
+
+    aggregationPipeline.push({
+      $limit: pagingData.limit,
+    });
+  }
+
+  // sort stage
+  if (queryObject.sort) aggregationPipeline.push({ $sort: queryObject.sort });
+
+  // project stage
+  if (queryObject.project)
+    aggregationPipeline.push({
+      $project: queryObject.project,
+    });
+
+  const animes = await Anime.aggregate(aggregationPipeline);
 
   res.send({
     status: "success",
+    results: animes.length,
     data: {
       animes,
     },

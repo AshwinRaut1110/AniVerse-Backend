@@ -163,6 +163,7 @@ const deleteAWatchlistEntry = catchAsyncErrors(async (req, res, next) => {
     );
 
   const { episodes, duration } = watchlistEntry.anime;
+  const watchlistEntryStatus = watchlistEntry.status;
 
   const { deletedCount } = await watchlistEntry.deleteOne();
 
@@ -173,8 +174,13 @@ const deleteAWatchlistEntry = catchAsyncErrors(async (req, res, next) => {
 
   // update the user stats
   req.user.stats.watchlistStats.totalEntries--;
-  req.user.stats.watchlistStats.episodesWatched -= episodes;
-  req.user.stats.watchlistStats.totalWatchTime -= episodes * duration;
+
+  if (watchlistEntryStatus === "completed") {
+    req.user.stats.watchlistStats.episodesWatched -= episodes;
+    req.user.stats.watchlistStats.totalWatchTime -= episodes * duration;
+  }
+
+  req.user.stats.watchlistStats[statusMapping[watchlistEntryStatus]]--;
 
   await req.user.save();
 

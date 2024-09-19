@@ -5,12 +5,17 @@ const {
   protect,
   updateMyPassword,
 } = require("../controllers/authController");
-const { updateMyProfilePicture } = require("../controllers/userController");
+const {
+  updateMyProfilePicture,
+  updateUserProfile,
+} = require("../controllers/userController");
 const multer = require("multer");
 
 const upload = multer();
 
 const userRouter = express.Router();
+
+userRouter.route("/").patch(protect, updateUserProfile);
 
 // user authentication routes
 userRouter.route("/login").post(login);

@@ -29,6 +29,11 @@ const commentSchema = new mongoose.Schema({
   profilePicture: {
     type: String,
   },
+  numberOfReplies: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
