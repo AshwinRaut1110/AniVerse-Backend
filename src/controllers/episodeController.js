@@ -116,6 +116,11 @@ const createEpisode = catchAsyncErrors(async (req, res, next) => {
   if (!createdEpisode)
     return next(new CustomError(500, "unable to save the episode."));
 
+  // update the number of episodes uploaded for the anime
+  anime.totalEpisodes++;
+
+  await anime.save();
+
   res.status(201).send({
     data: {
       createdEpisode,
@@ -179,7 +184,12 @@ const uploadAnEpisode = catchAsyncErrors(async (req, res, next) => {
 
   await episode.save();
 
-  res.send(episode);
+  res.send({
+    status: "success",
+    data: {
+      episode,
+    },
+  });
 });
 
 const deleteAnEpisode = catchAsyncErrors(async (req, res, next) => {
@@ -192,6 +202,16 @@ const deleteAnEpisode = catchAsyncErrors(async (req, res, next) => {
   if (!episode)
     return next(
       new CustomError(404, "Episode with the given identifier not found.")
+    );
+
+  const anime = await Anime.findById(episode.anime);
+
+  if (!anime)
+    return next(
+      new CustomError(
+        404,
+        "Anime associated with the given episode with the given identifier not found."
+      )
     );
 
   // if the quality is provided only delete the specified version of the episode
@@ -218,6 +238,11 @@ const deleteAnEpisode = catchAsyncErrors(async (req, res, next) => {
   }
 
   await episode.deleteOne();
+
+  // update the number of episodes uploaded for the anime
+  anime.totalEpisodes--;
+
+  await anime.save();
 
   res.status(204).send(null);
 });
