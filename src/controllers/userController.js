@@ -5,12 +5,13 @@ const { join } = require("path");
 const Minio = require("minio");
 const { filterUserFields } = require("../util/filterFields");
 const fs = require("fs/promises");
+const User = require("../models/userModel");
 
 const updateUserProfile = catchAsyncErrors(async (req, res, next) => {
   const filteredFields = filterUserFields(req.body, [
     "username",
     "email",
-    "watchlistIsPublic",
+    "profileIsPublic",
   ]);
 
   for (const key in filteredFields) {
@@ -81,7 +82,37 @@ const updateMyProfilePicture = catchAsyncErrors(async (req, res) => {
   });
 });
 
+const getMyStats = catchAsyncErrors(async (req, res, next) => {
+  res.send({
+    status: "success",
+    data: {
+      stats: req.user.stats,
+    },
+  });
+});
+
+const getAUsersStats = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findOne({ username: req.query.user });
+
+  if (!user)
+    return next(
+      new CustomError(404, "User with the given username not found.")
+    );
+
+  if (!user.profileIsPublic)
+    return next(new CustomError(404, "The user's profile is not public."));
+
+  res.send({
+    status: "success",
+    data: {
+      stats: user.stats,
+    },
+  });
+});
+
 module.exports = {
   updateMyProfilePicture,
   updateUserProfile,
+  getMyStats,
+  getAUsersStats
 };

@@ -47,7 +47,7 @@ const getAWatchlist = catchAsyncErrors(async (req, res, next) => {
       new CustomError(404, "User with the given username was not found.")
     );
 
-  if (!user.watchlistIsPublic)
+  if (!user.profileIsPublic)
     return next(new CustomError(404, "The user's watchlist is not public."));
 
   const filter = { user: user._id };

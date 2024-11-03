@@ -8,6 +8,8 @@ const {
 const {
   updateMyProfilePicture,
   updateUserProfile,
+  getMyStats,
+  getAUsersStats,
 } = require("../controllers/userController");
 const multer = require("multer");
 
@@ -20,6 +22,9 @@ userRouter.route("/").patch(protect, updateUserProfile);
 // user authentication routes
 userRouter.route("/login").post(login);
 userRouter.route("/signup").post(signup);
+
+userRouter.route("/get-my-stats").get(protect, getMyStats);
+userRouter.route("/stats").get(getAUsersStats);
 
 // protected routes
 userRouter.route("/update-my-password").patch(protect, updateMyPassword);

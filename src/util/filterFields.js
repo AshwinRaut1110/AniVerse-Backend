@@ -6,8 +6,7 @@ const filterUserFields = (
     "role",
     "profilePicture",
     "createdAt",
-    "stats",
-    "watchlistIsPublic",
+    "profileIsPublic",
   ]
 ) => {
   const allowedFieldsUser = {};

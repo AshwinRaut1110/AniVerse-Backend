@@ -2,6 +2,7 @@ const HomePageSection = require("../models/homePageSectionModel");
 const catchAsyncErrors = require("../util/catchAsyncErrors");
 const CustomError = require("../util/CustomError");
 const APIFeatures = require("../util/APIFeatures");
+const Anime = require("../models/animeModel");
 
 const createHomePageSection = catchAsyncErrors(async (req, res, next) => {
   const sectionData = req.body;
